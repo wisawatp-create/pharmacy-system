@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการยา - Pharmacy System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        :root { --primary-color: #2fb6c9; } /* สีจาก Rich Menu ของคุณ */
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background-color: var(--primary-color); }
+        #login-container { display: none; padding-top: 15vh; }
+        #app-container { display: none; }
+        .loading-overlay { text-align: center; padding-top: 30vh; }
+    </style>
+</head>
+<body>
+
+    <div id="loader" class="loading-overlay">
+        <div class="spinner-border text-info" style="width: 3rem; height: 3rem;"></div>
+        <p class="mt-3">กำลังเตรียมระบบ...</p>
+    </div>
+
+    <div id="login-container" class="container">
+        <div class="card shadow-sm mx-auto" style="max-width: 400px;">
+            <div class="card-body text-center">
+                <img src="https://cdn-icons-png.flaticon.com/512/883/883360.png" width="80" class="mb-3">
+                <h4>เข้าสู่ระบบจัดการยา</h4>
+                <p class="text-muted small">กรุณาคลิกเพื่อยืนยันตัวตนผ่าน LINE</p>
+                <button onclick="liff.login()" class="btn btn-info w-100 text-white">Login with LINE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <nav class="navbar navbar-dark shadow-sm mb-4">
+            <div class="container">
+                <span class="navbar-brand mb-0 h1">ระบบจัดการยา</span>
+                <span id="user-name" class="navbar-text text-white small"></span>
+            </div>
+        </nav>
+
+        <div class="container">
+            <div id="main-content">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // --- การตั้งค่าเบื้องต้น ---
+        const LIFF_ID = "2009129539-XFnH7GWq";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyHmqMVX_i-IF-W4i6URRrLm2scxz1476qjsEeafFpJdzTnzpgm_E4SUpgjN6d3SG5l/exec"; // แก้ไขเป็น URL ของคุณ
+
+        async function initLiff() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+
+                if (!liff.isLoggedIn()) {
+                    if (liff.isInClient()) {
+                        liff.login(); // มือถือ Auto-Login
+                    } else {
+                        // PC แสดงปุ่ม Login
+                        document.getElementById("loader").style.display = "none";
+                        document.getElementById("login-container").style.display = "block";
+                    }
+                } else {
+                    const profile = await liff.getProfile();
+                    document.getElementById("user-name").innerText = `ผู้ใช้งาน: ${profile.displayName}`;
+                    
+                    // ดึงค่าหน้าที่ต้องการเปิดจาก URL (?page=xxxx)
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const targetPage = urlParams.get('page') || 'expiry'; // Default ไปหน้าตรวจสอบวันหมดอายุ
+
+                    // ตรวจสอบการลงทะเบียน และแสดงผลหน้าเว็บ
+                    loadPageView(targetPage, profile.userId);
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire("ข้อผิดพลาด", "ไม่สามารถเริ่มต้นระบบ LINE ได้", "error");
+            }
+        }
+
+        // ฟังก์ชันดึงไฟล์ HTML จากโฟลเดอร์ views มาแสดง
+        async function loadPageView(page, lineId) {
+            document.getElementById("loader").style.display = "block";
+            document.getElementById("app-container").style.display = "none";
+
+            try {
+                // เรียกไฟล์หน้าย่อยจากโฟลเดอร์ views/
+                const response = await fetch(`views/${page}.html`);
+                if (!response.ok) throw new Error('ไม่พบหน้าที่ต้องการ');
+                
+                const html = await response.text();
+                
+                document.getElementById("main-content").innerHTML = html;
+                document.getElementById("loader").style.display = "none";
+                document.getElementById("app-container").style.display = "block";
+
+                // ถ้าหน้านั้นมีฟังก์ชันเริ่มต้น ให้รันสคริปต์
+                if (typeof initPageLogic === "function") initPageLogic(lineId);
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire("ไม่พบหน้า", "ขออภัย ไม่พบเมนูที่คุณเรียกใช้งาน", "warning");
+                // ถ้าผิดพลาดให้กลับไปหน้าแรก
+                if (page !== 'expiry') loadPageView('expiry', lineId);
+            }
+        }
+
+        window.onload = initLiff;
+    </script>
+</body>
+</html>
