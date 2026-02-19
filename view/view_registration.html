@@ -1,63 +1,38 @@
 <div class="text-center mb-4">
-  <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="#556B2F" class="bi bi-person-badge mb-2" viewBox="0 0 16 16">
-    <path d="M6.5 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-    <path d="M4.5 0A2.5 2.5 0 0 0 2 2.5V14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2.5A2.5 2.5 0 0 0 11.5 0zM3 2.5A1.5 1.5 0 0 1 4.5 1h7A1.5 1.5 0 0 1 13 2.5v10.795a4.2 4.2 0 0 0-.776-.492C11.392 12.387 10.063 12 8 12s-3.392.387-4.224.803a4.2 4.2 0 0 0-.776.492z"/>
-  </svg>
-  <h3 style="color:var(--olive); font-weight:700;">ลงทะเบียนเจ้าหน้าที่</h3>
+    <h3 class="text-info">ลงทะเบียนเจ้าหน้าที่</h3>
 </div>
-
-<form id="formRegistration">
-  <input type="hidden" id="regLineId">
-  <div class="mb-3">
-    <label class="form-label fw-bold">ชื่อ-นามสกุล</label>
-    <input type="text" class="form-control" id="fullName" required>
-  </div>
-  <div class="mb-3">
-    <label class="form-label fw-bold">หอผู้ป่วย</label>
-    <select class="form-select" id="ward" required>
-      <option value="" disabled selected>กำลังโหลดข้อมูล...</option>
-    </select>
-  </div>
-  <div class="mb-4">
-    <label class="form-label fw-bold">เบอร์โทรศัพท์</label>
-    <input type="tel" class="form-control" id="phone" pattern="[0-9]{9,10}" required>
-  </div>
-  <button type="submit" class="btn btn-olive w-100 py-3 shadow">บันทึกข้อมูล</button>
+<form id="regForm">
+    <div class="mb-3">
+        <label class="form-label">ชื่อ-นามสกุล</label>
+        <input type="text" class="form-control" id="fullName" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">ตำแหน่ง/ฝ่าย</label>
+        <select class="form-select" id="position" required>
+            <option value="เภสัชกร">เภสัชกร</option>
+            <option value="เจ้าพนักงานเภสัชกรรม">เจ้าพนักงานเภสัชกรรม</option>
+            <option value="อื่นๆ">อื่นๆ</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-info w-100 fw-bold">บันทึกข้อมูล</button>
 </form>
 
 <script>
-  function initPageLogic(lineId) {
-    document.getElementById('regLineId').value = lineId;
-    google.script.run.withSuccessHandler(function(wards) {
-      const select = document.getElementById('ward');
-      select.innerHTML = '<option value="" disabled selected>เลือกหอผู้ป่วย</option>';
-      wards.forEach(w => {
-        let opt = document.createElement('option');
-        opt.value = w; opt.textContent = w;
-        select.appendChild(opt);
-      });
-    }).getWardList();
-  }
-
-  document.getElementById('formRegistration').addEventListener('submit', function(e) {
-    e.preventDefault();
-    Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-    const data = {
-      lineId: document.getElementById('regLineId').value,
-      fullName: document.getElementById('fullName').value,
-      ward: document.getElementById('ward').value,
-      phone: document.getElementById('phone').value
+    window.initPageLogic = function(lineId) {
+        document.getElementById('regForm').onsubmit = async (e) => {
+            e.preventDefault();
+            Swal.showLoading();
+            const payload = {
+                action: 'registerUser',
+                userId: lineId,
+                name: document.getElementById('fullName').value,
+                pos: document.getElementById('position').value
+            };
+            const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const result = await response.json();
+            if (result.status === 'success') {
+                Swal.fire('สำเร็จ', 'ลงทะเบียนเรียบร้อย', 'success').then(() => liff.closeWindow());
+            }
+        };
     };
-
-    google.script.run.withSuccessHandler(function() {
-      Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'ข้อมูลส่งเข้าไลน์แล้ว', confirmButtonColor: '#556B2F' })
-      .then(() => {
-        if (liff.isInClient()) {
-          liff.sendMessages([{ "type": "text", "text": "ลงทะเบียนเรียบร้อย" }])
-          .then(() => liff.closeWindow());
-        } else { liff.closeWindow(); }
-      });
-    }).saveRegistration(data);
-  });
 </script>
