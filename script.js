@@ -1,4 +1,4 @@
-const GAS_URL = "URL_เว็บแอป_จาก_GOOGLE_APPS_SCRIPT_ที่_DEPLOY_แล้ว";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyHmqMVX_i-IF-W4i6URRrLm2scxz1476qjsEeafFpJdzTnzpgm_E4SUpgjN6d3SG5l/exec";
 const LIFF_ID = "2009129539-XFnH7GWq";
 
 // 1. ฟังก์ชันเริ่มต้นสำหรับหน้าแรก (index.html)
