@@ -1,8 +1,11 @@
 const GAS_URL = "https://script.google.com/macros/s/AKfycbwCwBOhCPNdwWLzBEtMi5jw5npFYd87T-8ijKSMroT_zzNL92A1E243QGWlTCML6DA5/exec";
 const LIFF_ID = "2009129539-XFnH7GWq";
 
+let isLiffInitialized = false;
+
 // 1. ฟังก์ชันเริ่มต้นสำหรับหน้าแรก (index.html)
 async function initLiff() {
+    if (isLiffInitialized) return; // ถ้า init แล้วไม่ต้องทำซ้ำ
     try {
         await liff.init({ liffId: LIFF_ID });
         if (!liff.isLoggedIn()) {
