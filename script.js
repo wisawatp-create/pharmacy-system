@@ -1,4 +1,4 @@
-const GAS_URL = "https://script.google.com/macros/s/AKfycbyHmqMVX_i-IF-W4i6URRrLm2scxz1476qjsEeafFpJdzTnzpgm_E4SUpgjN6d3SG5l/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwCwBOhCPNdwWLzBEtMi5jw5npFYd87T-8ijKSMroT_zzNL92A1E243QGWlTCML6DA5/exec";
 const LIFF_ID = "2009129539-XFnH7GWq";
 
 // 1. ฟังก์ชันเริ่มต้นสำหรับหน้าแรก (index.html)
