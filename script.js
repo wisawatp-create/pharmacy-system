@@ -8,6 +8,7 @@ async function initLiff() {
     if (isLiffInitialized) return; // ถ้า init แล้วไม่ต้องทำซ้ำ
     try {
         await liff.init({ liffId: LIFF_ID });
+        isLiffInitialized = true;
         if (!liff.isLoggedIn()) {
             if (!liff.isInClient()) {
                 document.getElementById("login-container").style.display = "block";
