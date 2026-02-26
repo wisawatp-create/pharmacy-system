@@ -24,9 +24,16 @@ async function initLiff() {
 // 2. เช็คว่าลงทะเบียนหรือยัง
 async function checkUserStatus(userId) {
     try {
-        const res = await fetch(`${GAS_URL}?action=checkUser&userId=${userId}`);
-        const result = await res.json();
+        // เพิ่ม Cache Busting ป้องกัน Browser จำค่า Error เดิม
+        const url = `${GAS_URL}?action=checkUser&userId=${userId}&t=${Date.now()}`;
+        
+        // ใช้ fetch แบบเรียบง่ายที่สุด
+        const res = await fetch(url);
 
+        // ตรวจสอบว่า Response กลับมาเป็น JSON หรือไม่
+        const result = await res.json();
+        console.log("Data from GAS:", result);
+        
         if (result.registered) {
             // แจ้งเตือนด้วย SweetAlert แบบ Toast (มุมจอ) ให้ผู้ใช้ทราบก่อนปิด
             Swal.fire({
@@ -61,7 +68,7 @@ async function checkUserStatus(userId) {
             window.location.href = "register.html";
         }
     } catch (err) {
-        Swal.fire("Error", "ไม่สามารถติดต่อฐานข้อมูลได้", "error");
+        Swal.fire("Error", "ไม่สามารถตรวจสอบสถานะได้: " + err.message, "error");
     }
 }
 
